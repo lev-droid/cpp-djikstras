@@ -1,4 +1,3 @@
-![Graph Shortest Path Visualizer](https://svg-banners.vercel.app/api?type=origin&text1=djikstras%20cpp%20&width=800&height=400)
 
 <p align="center">
   <b>Graph Shortest Path Visualizer</b> is an interactive tool designed to demonstrate and visualize various graph search algorithms, specifically for finding the shortest path between two nodes in a graph. Developed in C++ using the SFML library, this project serves as an educational resource for students and enthusiasts who want to learn and understand graph algorithms.
