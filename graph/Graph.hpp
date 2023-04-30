@@ -7,6 +7,8 @@
 
 class Graph {
 public:
+    void clear();
+
     void addNode(const sf::Vector2f& position);
     void removeNode(std::shared_ptr<Node> node);
 

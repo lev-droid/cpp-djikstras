@@ -1,5 +1,12 @@
 #include "Graph.hpp"
 
+void Graph::clear() {
+    edges_.clear();
+    nodes_.clear();
+}
+
+
+
 void Graph::addNode(const sf::Vector2f& position) {
     auto newNode = std::make_shared<Node>(position);
     nodes_.push_back(newNode);
