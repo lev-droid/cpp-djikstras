@@ -6,7 +6,6 @@ void Graph::clear() {
 }
 
 
-
 void Graph::addNode(const sf::Vector2f& position) {
     auto newNode = std::make_shared<Node>(position);
     nodes_.push_back(newNode);
@@ -41,26 +40,26 @@ const std::vector<std::shared_ptr<Edge>>& Graph::getEdges() const {
 }
 
 void Graph::draw(sf::RenderWindow& window, const std::shared_ptr<Node>& startNode, const std::shared_ptr<Node>& goalNode) const {
-    for (const auto& node : nodes_) {
-        node->draw(window);
-    }
-
     for (const auto& edge : edges_) {
         edge->draw(window);
     }
 
+    for (const auto& node : nodes_) {
+        node->draw(window);
+    }
+
     if (startNode) {
-        sf::CircleShape startIndicator(Node::NODE_RADIUS * 1.5f);
+        sf::CircleShape startIndicator(Node::NODE_RADIUS);
         startIndicator.setFillColor(sf::Color::Green);
-        startIndicator.setOrigin(Node::NODE_RADIUS * 1.5f, Node::NODE_RADIUS * 1.5f);
+        startIndicator.setOrigin(Node::NODE_RADIUS, Node::NODE_RADIUS);
         startIndicator.setPosition(startNode->getPosition());
         window.draw(startIndicator);
     }
 
     if (goalNode) {
-        sf::CircleShape goalIndicator(Node::NODE_RADIUS * 1.5f);
+        sf::CircleShape goalIndicator(Node::NODE_RADIUS);
         goalIndicator.setFillColor(sf::Color::Red);
-        goalIndicator.setOrigin(Node::NODE_RADIUS * 1.5f, Node::NODE_RADIUS * 1.5f);
+        goalIndicator.setOrigin(Node::NODE_RADIUS, Node::NODE_RADIUS);
         goalIndicator.setPosition(goalNode->getPosition());
         window.draw(goalIndicator);
     }

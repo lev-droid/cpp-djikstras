@@ -22,13 +22,14 @@ void Node::removeEdge(std::shared_ptr<Edge> edge) {
 const std::vector<std::shared_ptr<Edge>>& Node::getEdges() const {
     return edges_;
 }
-
+void Node::setColor(const sf::Color& color) {
+    nodeColor_ = color;
+}
 void Node::draw(sf::RenderWindow& window) const {
-    constexpr float radius = 15.0f;
-    const sf::Color nodeColor = sf::Color::Red;
+    float radius = NODE_RADIUS; // Use the consistent node radius value
 
     sf::CircleShape circle(radius);
-    circle.setFillColor(nodeColor);
+    circle.setFillColor(nodeColor_);
     circle.setPosition(position_.x - radius, position_.y - radius);
 
     window.draw(circle);

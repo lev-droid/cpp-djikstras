@@ -22,5 +22,4 @@ public:
 private:
     std::vector<std::shared_ptr<Node>> nodes_;
     std::vector<std::shared_ptr<Edge>> edges_;
-    sf::Font font_;
 };

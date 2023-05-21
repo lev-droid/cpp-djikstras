@@ -3,7 +3,7 @@
 #include <random>
 
 UI::UI(Graph& graph, Algorithm& algorithm, sf::RenderWindow& window)
-    : graph_(graph), algorithm_(algorithm), selectedButton_(nullptr), mainView_(window.getView()), uiView_(window.getDefaultView()) {
+    : graph_(graph), algorithm_(algorithm), selectedButton_(nullptr), mainView_(window.getView()), uiView_(window.getDefaultView()), mode(Mode::NORMAL) {
     if (!font_.loadFromFile("arial.ttf")) {
         std::cerr << "Failed to load font file." << std::endl;
     }
@@ -23,27 +23,36 @@ UI::UI(Graph& graph, Algorithm& algorithm, sf::RenderWindow& window)
     button->setPosition(10, 40);
     buttons_.push_back(button);
 
-
+    button = std::make_shared<sf::Text>();
+    button->setFont(font_);
+    button->setString("Change Mode");
+    button->setPosition(10, 70);
+    buttons_.push_back(button);
 
     pathLengthText_ = std::make_shared<sf::Text>();
     pathLengthText_->setFont(font_);
-    pathLengthText_->setPosition(10, 70);
+    pathLengthText_->setPosition(10, 110);
     pathLengthText_->setCharacterSize(14);
 
     executionTimeText_ = std::make_shared<sf::Text>();
     executionTimeText_->setFont(font_);
-    executionTimeText_->setPosition(10, 90);
+    executionTimeText_->setPosition(10, 130);
     executionTimeText_->setCharacterSize(14);
 
     numNodesEdgesText_ = std::make_shared<sf::Text>();
     numNodesEdgesText_->setFont(font_);
-    numNodesEdgesText_->setPosition(10, 110);
+    numNodesEdgesText_->setPosition(10, 150);
     numNodesEdgesText_->setCharacterSize(14);
 
 
 
 
 }
+
+UI::Mode UI::getMode() const {
+    return mode;
+}
+
 
 void UI::draw(sf::RenderWindow& window) {
     // Set the UI view before drawing the buttons
@@ -54,7 +63,12 @@ void UI::draw(sf::RenderWindow& window) {
     window.draw(*pathLengthText_);
     window.draw(*executionTimeText_);
     window.draw(*numNodesEdgesText_);
+    window.draw(stepByStepButton);
     window.setView(mainView_);
+}
+
+void UI::setMode(Mode mode) {
+    this->mode = mode;
 }
 
 
@@ -121,17 +135,33 @@ void UI::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     updateUI();
 }
 
+std::string UI::modeToString(Mode mode) {
+    switch (mode) {
+    case Mode::NORMAL:
+        return "NORMAL";
+    case Mode::STEP_BY_STEP:
+        return "STEP_BY_STEP";
+    default:
+        return "UNKNOWN";
+    }
+}
 
 void UI::updateUI() {
     if (selectedButton_) {
         if (selectedButton_->getString() == "Clear Graph") {
 
             if (!graph_.getNodes().empty()) {
-                graph_.clear();
+                resetAlgorithm();
             }
         }
         else if (selectedButton_->getString() == "Generate Random Graph") {
+            resetAlgorithm();
             generateRandomGraph(10, 20, 800, 600);
+
+        }
+        else if (selectedButton_->getString() == "Change Mode") {
+            setMode(mode == Mode::NORMAL ? Mode::STEP_BY_STEP : Mode::NORMAL);
+
         }
         // Handle other button actions...
     }
@@ -151,7 +181,7 @@ void UI::updateUI() {
 
 
 void UI::generateRandomGraph(size_t numNodes, size_t numEdges, float maxX, float maxY) {
-    graph_.clear();
+    resetAlgorithm();
 
     // Generate random nodes
     std::random_device rd;
@@ -174,4 +204,10 @@ void UI::generateRandomGraph(size_t numNodes, size_t numEdges, float maxX, float
             graph_.addEdge(startNode, endNode, weight);
         }
     }
+}
+
+void UI::resetAlgorithm() {
+    graph_.clear();
+    algorithm_.setStepIndex(0);
+
 }

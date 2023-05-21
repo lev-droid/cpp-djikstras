@@ -1,9 +1,24 @@
 #include "Algorithm.hpp"
 #include "Utility.hpp"
 #include <chrono>
-Algorithm::Algorithm(Graph& graph) : graph_(graph), pathLength_(0), executionTime_(0) {}
 
-bool Algorithm::dijkstra(std::shared_ptr<Node> startNode, std::shared_ptr<Node> endNode) {
+
+Algorithm::Algorithm(Graph& graph) : graph_(graph), pathLength_(0), executionTime_(0), stepIndex_(0) {
+}
+
+size_t Algorithm::getStepIndex() const {
+    return stepIndex_;
+}
+
+void Algorithm::setStepIndex(size_t stepIndex) {
+    stepIndex_ = stepIndex;
+}
+
+
+
+
+
+bool Algorithm::dijkstra(std::shared_ptr<Node> startNode, std::shared_ptr<Node> endNode, DijkstraCallback callback) {
     path_.clear();
     auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -36,9 +51,14 @@ bool Algorithm::dijkstra(std::shared_ptr<Node> startNode, std::shared_ptr<Node> 
             }
             path_.push_back(startNode);
             std::reverse(path_.begin(), path_.end());
+
+            // Send the final path to the callback
+            if (callback != nullptr) {
+                callback(current, {}, {}, path_);
+            }
+
             return true;
         }
-
 
         for (const auto& edge : current->getEdges()) {
             auto neighbor = (edge->getStartNode() == current) ? edge->getEndNode() : edge->getStartNode();
@@ -48,6 +68,18 @@ bool Algorithm::dijkstra(std::shared_ptr<Node> startNode, std::shared_ptr<Node> 
                 distances[neighbor] = newDistance;
                 previous[neighbor] = current;
                 queue.push(neighbor);
+
+                if (callback != nullptr) {
+                    std::vector<std::shared_ptr<Node>> partialPath;
+                    auto currentNode = neighbor;
+                    while (currentNode != startNode && previous.find(currentNode) != previous.end()) {
+                        partialPath.push_back(currentNode);
+                        currentNode = previous[currentNode];
+                    }
+                    partialPath.push_back(startNode);
+                    std::reverse(partialPath.begin(), partialPath.end());
+                    callback(current, { current }, { neighbor }, partialPath);
+                }
             }
         }
     }
@@ -88,6 +120,7 @@ bool Algorithm::aStar(std::shared_ptr<Node> startNode, std::shared_ptr<Node> end
             }
             path_.push_back(startNode);
             std::reverse(path_.begin(), path_.end());
+
             return true;
         }
 
@@ -148,7 +181,7 @@ bool Algorithm::bellmanFord(std::shared_ptr<Node> startNode, std::shared_ptr<Nod
         }
     }
 
-    if (previous.find(endNode) == previous.end()) {
+    if (previous.find(endNode) == previous.end())    {
         return false;
     }
 
@@ -180,4 +213,72 @@ float Algorithm::getPathLength() const {
 
 float Algorithm::getExecutionTime() const {
     return executionTime_;
+}
+
+void Algorithm::renderPath(sf::RenderWindow& window) const {
+    sf::VertexArray pathLines(sf::LinesStrip, currentPath.size());
+    for (std::size_t i = 0; i < currentPath.size(); ++i) {
+        pathLines[i].position = currentPath[i]->getPosition();
+        pathLines[i].color = sf::Color::Red;
+    }
+    window.draw(pathLines);
+}
+
+void Algorithm::resetPath() {
+    currentPath.clear();
+}
+
+void Algorithm::setCurrentPath(const std::vector<std::shared_ptr<Node>>& path) {
+    currentPath = path;
+}
+
+
+void Algorithm::renderStep(sf::RenderWindow& window) {
+    sf::Color currentNodeColor(255, 140, 0); // Orange
+
+    sf::Color processedNodeColor(135, 206, 250); // Light blue
+    if (!steps.empty() && getStepIndex() < steps.size()) {
+        const auto& step = steps[getStepIndex()];
+        if (step.first && step.second) {
+            sf::VertexArray stepLine(sf::Lines, 2);
+            stepLine[0].position = step.first->getPosition();
+            stepLine[0].color = sf::Color::Red;
+            stepLine[1].position = step.second->getPosition();
+            stepLine[1].color = sf::Color::Red;
+            window.draw(stepLine);
+        }
+
+        // Color processed nodes
+        for (const auto& node : processedNodes) {
+            if (node) {
+                node->setColor(processedNodeColor);
+            }
+        }
+
+        // Color current node
+        if (step.first) {
+            step.first->setColor(currentNodeColor);
+        }
+    }
+
+
+    if (!currentPaths.empty() && getStepIndex() < currentPaths.size()) {
+        const auto& currentPath = currentPaths[getStepIndex()];
+        for (size_t i = 0; i < currentPath.size() - 1; ++i) {
+            if (getStepIndex() < steps.size()) {
+                sf::VertexArray pathLine(sf::Lines, 2);
+                pathLine[0].position = currentPath[i]->getPosition();
+                pathLine[0].color = sf::Color::Red;
+                pathLine[1].position = currentPath[i + 1]->getPosition();
+                pathLine[1].color = sf::Color::Red;
+                window.draw(pathLine);
+            }
+        }
+    }
+}
+
+void Algorithm::resetStep() {
+    steps.clear();
+    currentPaths.clear();
+    processedNodes.clear();
 }
