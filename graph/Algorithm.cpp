@@ -1,3 +1,32 @@
+/*
+Algorithm.cpp
+This source file contains the implementations of the member functions of the Algorithm class.
+
+Member Functions
+Algorithm::Algorithm(Graph& graph): Constructs an Algorithm object with a reference to a Graph object.
+bool Algorithm::dijkstra(std::shared_ptr<Node> startNode, std::shared_ptr<Node> endNode, DijkstraCallback callback): Performs Dijkstra's algorithm on the graph starting from the startNode and ending at the endNode. Optionally, a callback function can be provided to receive updates during the algorithm execution.
+bool Algorithm::aStar(std::shared_ptr<Node> startNode, std::shared_ptr<Node> endNode): Performs the A* algorithm on the graph starting from the startNode and ending at the endNode.
+bool Algorithm::bellmanFord(std::shared_ptr<Node> startNode, std::shared_ptr<Node> endNode): Performs the Bellman-Ford algorithm on the graph starting from the startNode and ending at the endNode.
+void Algorithm::renderPath(sf::RenderWindow& window) const: Renders the path found by the algorithm on the specified sf::RenderWindow.
+void Algorithm::renderStep(sf::RenderWindow& window, sf::Color processedNodeColor, sf::Color currentNodeColor): Renders the current step of the algorithm on the specified sf::RenderWindow with the given colors for processed nodes and the current node.
+void Algorithm::setCurrentPath(const std::vector<std::shared_ptr<Node>>& path): Sets the current path to the specified vector of nodes.
+void Algorithm::addCurrentPath(const std::vector<std::shared_ptr<Node>>& path): Adds the specified path to the list of current paths.
+void Algorithm::resetPath(): Resets the current path.
+void Algorithm::addProcessedNode(const std::shared_ptr<Node>& node): Adds the specified node to the set of processed nodes.
+const std::unordered_set<std::shared_ptr<Node>>& Algorithm::getProcessedNodes() const: Returns the set of processed nodes.
+void Algorithm::resetProcessedNodes(): Resets the set of processed nodes.
+void Algorithm::addStep(const std::pair<std::shared_ptr<Node>, std::shared_ptr<Node>>& step): Adds the specified step (pair of nodes) to the list of steps.
+const std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<Node>>>& Algorithm::getSteps() const: Returns the list of steps.
+void Algorithm::clearSteps(): Clears the list of steps.
+const std::vector<std::shared_ptr<Node>>& Algorithm::getPath() const: Returns the path found by the algorithm.
+float Algorithm::getPathLength() const: Returns the length of the path found by the algorithm.
+float Algorithm::getExecutionTime() const: Returns the execution time of the algorithm.
+size_t Algorithm::getStepIndex() const: Returns the current step index.
+void Algorithm::setStepIndex(size_t stepIndex): Sets the current step index.
+*/
+
+
+
 #include "Algorithm.hpp"
 #include "Utility.hpp"
 #include <chrono>
@@ -79,6 +108,7 @@ bool Algorithm::dijkstra(std::shared_ptr<Node> startNode, std::shared_ptr<Node> 
                     partialPath.push_back(startNode);
                     std::reverse(partialPath.begin(), partialPath.end());
                     callback(current, { current }, { neighbor }, partialPath);
+                    addCurrentPath(partialPath);  // Add this line
                 }
             }
         }
@@ -224,21 +254,13 @@ void Algorithm::renderPath(sf::RenderWindow& window) const {
     window.draw(pathLines);
 }
 
-void Algorithm::resetPath() {
-    currentPath.clear();
-}
-
-void Algorithm::setCurrentPath(const std::vector<std::shared_ptr<Node>>& path) {
-    currentPath = path;
-}
 
 
-void Algorithm::renderStep(sf::RenderWindow& window) {
-    sf::Color currentNodeColor(255, 140, 0); // Orange
 
-    sf::Color processedNodeColor(135, 206, 250); // Light blue
-    if (!steps.empty() && getStepIndex() < steps.size()) {
-        const auto& step = steps[getStepIndex()];
+void Algorithm::renderStep(sf::RenderWindow& window, sf::Color processedNodeColor, sf::Color currentNodeColor) {
+    // Draw the current step
+    if (!steps.empty() && stepIndex_ < steps.size()) {
+        const auto& step = steps[stepIndex_];
         if (step.first && step.second) {
             sf::VertexArray stepLine(sf::Lines, 2);
             stepLine[0].position = step.first->getPosition();
@@ -261,11 +283,10 @@ void Algorithm::renderStep(sf::RenderWindow& window) {
         }
     }
 
-
-    if (!currentPaths.empty() && getStepIndex() < currentPaths.size()) {
-        const auto& currentPath = currentPaths[getStepIndex()];
+    if (!currentPaths.empty() && stepIndex_ < currentPaths.size()) {
+        const auto& currentPath = currentPaths[stepIndex_];
         for (size_t i = 0; i < currentPath.size() - 1; ++i) {
-            if (getStepIndex() < steps.size()) {
+            if (stepIndex_ < steps.size()) {
                 sf::VertexArray pathLine(sf::Lines, 2);
                 pathLine[0].position = currentPath[i]->getPosition();
                 pathLine[0].color = sf::Color::Red;
@@ -274,11 +295,59 @@ void Algorithm::renderStep(sf::RenderWindow& window) {
                 window.draw(pathLine);
             }
         }
+
     }
+    if (stepIndex_ >= steps.size() && !currentPath.empty()) {
+        sf::VertexArray pathLines(sf::LinesStrip, currentPath.size());
+        for (std::size_t i = 0; i < currentPath.size(); ++i) {
+            pathLines[i].position = currentPath[i]->getPosition();
+            pathLines[i].color = sf::Color::Red;
+        }
+        window.draw(pathLines);
+    }
+
 }
 
-void Algorithm::resetStep() {
+
+//Steps
+void Algorithm::addStep(const std::pair<std::shared_ptr<Node>, std::shared_ptr<Node>>& step) {
+    steps.push_back(step);
+}
+
+const std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<Node>>>& Algorithm::getSteps() const {
+    return steps;
+}
+
+
+void Algorithm::clearSteps() {
     steps.clear();
-    currentPaths.clear();
+}
+
+//Nodes
+void Algorithm::addProcessedNode(const std::shared_ptr<Node>& node) {
+    processedNodes.insert(node);
+}
+const std::unordered_set<std::shared_ptr<Node>>& Algorithm::getProcessedNodes() const {
+    return processedNodes;
+}
+
+
+
+void Algorithm::resetProcessedNodes() {
     processedNodes.clear();
+}
+
+
+//Paths
+void Algorithm::addCurrentPath(const std::vector<std::shared_ptr<Node>>& path) {
+    currentPaths.push_back(path);
+}
+
+
+void Algorithm::setCurrentPath(const std::vector<std::shared_ptr<Node>>& path) {
+    currentPath = path;
+}
+
+void Algorithm::resetPath() {
+    currentPath.clear();
 }
