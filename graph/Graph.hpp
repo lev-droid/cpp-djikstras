@@ -8,6 +8,7 @@
 class Graph {
 public:
     void clear();
+    void loadFromCSV(const std::string& filename);
 
     void addNode(const sf::Vector2f& position);
     void removeNode(std::shared_ptr<Node> node);

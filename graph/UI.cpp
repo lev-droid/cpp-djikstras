@@ -10,38 +10,47 @@ UI::UI(Graph& graph, Algorithm& algorithm, sf::RenderWindow& window)
 
     std::shared_ptr<sf::Text> button;
 
+
+    button = std::make_shared<sf::Text>();
+    button->setFont(font_);
+    button->setString("Load Graph from CSV");
+    button->setPosition(10, 10); // Adjust the position as needed
+    buttons_.push_back(button);
+
     button = std::make_shared<sf::Text>();
     button->setFont(font_);
     button->setString("Clear Graph");
-    button->setPosition(10, 10);
+    button->setPosition(10, 40);
     buttons_.push_back(button);
 
     // Add more buttons as needed...
     button = std::make_shared<sf::Text>();
     button->setFont(font_);
     button->setString("Generate Random Graph");
-    button->setPosition(10, 40);
+    button->setPosition(10, 70);
     buttons_.push_back(button);
+
+
 
     button = std::make_shared<sf::Text>();
     button->setFont(font_);
     button->setString("Change Mode");
-    button->setPosition(10, 70);
+    button->setPosition(10, 100);
     buttons_.push_back(button);
 
     pathLengthText_ = std::make_shared<sf::Text>();
     pathLengthText_->setFont(font_);
-    pathLengthText_->setPosition(10, 110);
+    pathLengthText_->setPosition(10, 140);
     pathLengthText_->setCharacterSize(14);
 
     executionTimeText_ = std::make_shared<sf::Text>();
     executionTimeText_->setFont(font_);
-    executionTimeText_->setPosition(10, 130);
+    executionTimeText_->setPosition(10, 160);
     executionTimeText_->setCharacterSize(14);
 
     numNodesEdgesText_ = std::make_shared<sf::Text>();
     numNodesEdgesText_->setFont(font_);
-    numNodesEdgesText_->setPosition(10, 150);
+    numNodesEdgesText_->setPosition(10, 180);
     numNodesEdgesText_->setCharacterSize(14);
 
 
@@ -132,6 +141,19 @@ void UI::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
         lastMousePosition_ = sf::Vector2i(event.mouseMove.x, event.mouseMove.y);
     }
 
+    if (event.type == sf::Event::KeyPressed) {
+        if (event.key.code == sf::Keyboard::A) { // Press 'A' to toggle automatic mode
+            if (mode == Mode::STEP_BY_STEP) {
+                setMode(Mode::AUTO_STEP_BY_STEP);
+                autoStepClock_.restart(); // Reset the timer when switching to auto mode
+            }
+            else if (mode == Mode::AUTO_STEP_BY_STEP) {
+                setMode(Mode::STEP_BY_STEP);
+            }
+        }
+    }
+
+
     updateUI();
 }
 
@@ -156,13 +178,19 @@ void UI::updateUI() {
         }
         else if (selectedButton_->getString() == "Generate Random Graph") {
             resetAlgorithm();
-            generateRandomGraph(10, 20, 800, 600);
+            generateRandomGraph(20, 30, 800, 600);
 
         }
         else if (selectedButton_->getString() == "Change Mode") {
             setMode(mode == Mode::NORMAL ? Mode::STEP_BY_STEP : Mode::NORMAL);
 
         }
+        else if (selectedButton_->getString() == "Load Graph from CSV") {
+            std::string filename = "path_to_your_file.csv"; // Adjust this to your file path
+            graph_.loadFromCSV(filename);
+            resetAlgorithm();
+        }
+
         // Handle other button actions...
     }
 
@@ -209,5 +237,22 @@ void UI::generateRandomGraph(size_t numNodes, size_t numEdges, float maxX, float
 void UI::resetAlgorithm() {
     graph_.clear();
     algorithm_.setStepIndex(0);
+    algorithm_.resetProcessedNodes();
+    algorithm_.clearSteps();
+    algorithm_.resetPath();
+    algorithm_.resetPathLine();
 
+
+}
+
+const sf::Clock& UI::getAutoStepClock() const {
+    return autoStepClock_;
+}
+
+float UI::getAutoStepInterval() const {
+    return autoStepInterval_;
+}
+
+void UI::resetAutoStepClock() {
+    autoStepClock_.restart();
 }

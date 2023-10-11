@@ -14,19 +14,24 @@ class UI {
 public:
     enum class Mode {
         NORMAL,
-        STEP_BY_STEP
+        STEP_BY_STEP,
+        AUTO_STEP_BY_STEP
     };
+
 
 
     UI(Graph& graph, Algorithm& algorithm, sf::RenderWindow& window);
     void draw(sf::RenderWindow& window);
     void handleEvent(const sf::Event& event, sf::RenderWindow& window);
     void setMode(Mode mode);
+
     void resetAlgorithm();
+    const sf::Clock& getAutoStepClock() const;
+    float getAutoStepInterval() const;
+    void resetAutoStepClock();
 
     Mode getMode() const;
-        static std::string modeToString(Mode mode);
-        
+    static std::string modeToString(Mode mode);
     std::shared_ptr<sf::Text> getSelectedButton() const;
 private:
 
@@ -38,9 +43,12 @@ private:
    std::vector<std::shared_ptr<sf::Text>> buttons_;
     std::shared_ptr<sf::Text> selectedButton_;
     std::shared_ptr<sf::Text> pathLengthText_;
+
     std::shared_ptr<sf::Text> executionTimeText_;
     std::shared_ptr<sf::Text> numNodesEdgesText_;
     sf::RectangleShape stepByStepButton;
+    sf::Clock autoStepClock_;
+    float autoStepInterval_ = 0.5f; // 1 second interval for automatic steps
 
     float zoomFactor_;
     bool panning_;

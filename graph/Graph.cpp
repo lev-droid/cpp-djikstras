@@ -1,5 +1,7 @@
 #include "Graph.hpp"
-
+#include <fstream>
+#include <sstream>
+#include <iostream>
 void Graph::clear() {
     edges_.clear();
     nodes_.clear();
@@ -64,3 +66,41 @@ void Graph::draw(sf::RenderWindow& window, const std::shared_ptr<Node>& startNod
         window.draw(goalIndicator);
     }
 }
+
+void Graph::loadFromCSV(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open the file: " << filename << std::endl;
+        return;
+    }
+
+    clear(); // Clear the current graph
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string type, data1, data2, data3;
+
+        std::getline(ss, type, ',');
+        std::getline(ss, data1, ',');
+        std::getline(ss, data2, ',');
+        std::getline(ss, data3, ',');
+
+        if (type == "Node") {
+            float x = std::stof(data1);
+            float y = std::stof(data2);
+            addNode(sf::Vector2f(x, y));
+        }
+        else if (type == "Edge") {
+            int startIdx = std::stoi(data1);
+            int endIdx = std::stoi(data2);
+            float weight = std::stof(data3);
+            if (startIdx < nodes_.size() && endIdx < nodes_.size()) {
+                addEdge(nodes_[startIdx], nodes_[endIdx], weight);
+            }
+        }
+    }
+
+    file.close();
+}
+

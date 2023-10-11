@@ -63,8 +63,6 @@ public:
     explicit Algorithm(Graph& graph);
     //Algorithms
     bool dijkstra(std::shared_ptr<Node> startNode, std::shared_ptr<Node> endNode, DijkstraCallback callback = nullptr);
-    bool aStar(std::shared_ptr<Node> startNode, std::shared_ptr<Node> endNode);
-    bool bellmanFord(std::shared_ptr<Node> startNode, std::shared_ptr<Node> endNode);
 
     //Renderers
     void renderPath(sf::RenderWindow& window) const;
@@ -90,6 +88,7 @@ public:
 
     size_t getStepIndex() const;
     void setStepIndex(size_t stepIndex);
+    void resetPathLine();
 
 
 
@@ -100,7 +99,9 @@ private:
     std::unordered_set<std::shared_ptr<Node>> processedNodes;
     std::vector<std::shared_ptr<Node>> currentPath;
     std::vector<std::vector<std::shared_ptr<Node>>> currentPaths;
-
+    std::shared_ptr<sf::Text> pathName;
+    sf::VertexArray pathLine;
+    sf::Font font_;
 
     float pathLength_;
     float executionTime_;
